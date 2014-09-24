@@ -1,3 +1,15 @@
+#######################################################################################
+#
+#                                  MERGEFILES_MULTI 
+#                   Initial Condition creator for SCs merger simulation
+#
+# files to be merged= ftbm
+# calling sintax: mergefiles_multi.py #ftbm name_ftbm name_output ICconfiguration extent
+#
+#ICconfiguration: sphere or filament
+#extent= radius of the sphere or length of filament 
+#
+########################################################################################
 import os
 import gzip
 import string
@@ -52,10 +64,11 @@ def parabola(r, q):
 def filament(num, length):
     randomness_percent=1./10# 10% of randomness in position
     ic=np.ndarray(shape=(num, 3))
-    param=np.linspace(0.0, length, num=num)
-    ic[:, 0] = param+np.random.random_sample((num,))*(length*randomness_percent)
-    ic[:, 1] = param+np.random.random_sample((num,))*(length*randomness_percent)
-    ic[:, 2] = param+np.random.random_sample((num,))*(length*randomness_percent)    
+    side=length/float(np.sqrt(3))
+    param=np.linspace(0.0, side, num=num)
+    ic[:, 0] = param+np.random.random_sample((num,))*(side*randomness_percent)
+    ic[:, 1] = param+np.random.random_sample((num,))*(side*randomness_percent)
+    ic[:, 2] = param+np.random.random_sample((num,))*(side*randomness_percent)    
     return ic 
 
 #initial position shift calculator in order to have SCs on a sphere on the x-y-z plane
@@ -110,16 +123,21 @@ triple3=re.compile('^  name =\s+\((\d+),(\d+),(\d+)\)')
 
 ######## I/O files request and opening ######## 
 line=0
-num_sc_to_merge=int(raw_input('How many SCs to merge? '))
+#num_sc_to_merge=int(raw_input('How many SCs to merge? '))
+num_sc_to_merge=int(sys.argv[1])
 
 f_in_name_=["" for a in range(num_sc_to_merge)]
 f_in=[]
 filend_=np.zeros(num_sc_to_merge)
 
+#for numero in range(num_sc_to_merge):
+    #f_in_name_[numero] = str(raw_input('Enter file name: '))
 for numero in range(num_sc_to_merge):
-    f_in_name_[numero] = str(raw_input('Enter file name: '))
+    f_in_name_[numero] = str(sys.argv[2+numero])
 
-f_out_name=raw_input('Enter OUTPUT file:')
+
+#f_out_name=raw_input('Enter OUTPUT file:')
+f_out_name=str(sys.argv[2+num_sc_to_merge])
 
 
 for numero in range(num_sc_to_merge):
@@ -187,7 +205,7 @@ for numero in range(num_sc_to_merge):
 #seek(0,0) comes back to the beginning of clusters
     f_in[numero].seek(0,0)
 #set new mscale (it is called new_mtot, but it is actually new_mscale), tscale, nodes etc values
-print N_
+print 'initial number of particles: ', N_
 print 'initial number of nodes: ', nodes_
 print 'actual number of nodes: ', nodes_actually_
 #new_mtot = 1.0/sum(1./msca_)#old definition of new_mtot, it works if m_root is ~1, i.e. if you are merging std input files
@@ -206,8 +224,10 @@ v_rel=np.ndarray(shape=(num_sc_to_merge,3))
 
 v_rel[:][:]=0
 
-configuration = str(raw_input('Select initial spatial configuration: filament or sphere?'))
-extent = int(raw_input('Select configuration extent (in pc):'))
+#configuration = str(raw_input('Select initial spatial configuration: filament or sphere?'))
+configuration = str(sys.argv[2+num_sc_to_merge+1])
+#extent = int(raw_input('Select configuration extent (in pc):'))
+extent = int(sys.argv[2+num_sc_to_merge+2])
 if configuration == 'filament':
     pos_shift=filament(num_sc_to_merge, extent)
 if configuration == 'sphere':
